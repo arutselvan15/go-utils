@@ -1,0 +1,2 @@
+{"action":"create","component":"myapp","level":"debug","msg":"step1 log with logfile","step":"step1","time":"2019-06-16T21:37:46.191161100-07:00"}
+{"action":"create","component":"myapp","level":"debug","msg":"step1 log with logfile","step":"step1","time":"2019-06-16T21:53:57.136005600-07:00"}
