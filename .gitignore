@@ -8,6 +8,9 @@
 # Visual Studio Code files
 .vscode/
 
+# log files
+*.log
+
 # local directory created by the go command
 vendor/
 bin/

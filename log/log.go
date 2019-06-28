@@ -21,17 +21,23 @@ var FormatJson logFormat = "Json"
 
 type log struct {
 	*logrus.Entry
-	entry    *logrus.Entry
-	action   string
-	step     string
-	endpoint string
-	payload  string
-	response string
+	entry        *logrus.Entry
+	subcomponent string
+	action       string
+	step         string
+	endpoint     string
+	payload      string
+	response     string
+	audittype    string
+	user         string
+	newdata      string
+	olddata      string
 }
 
 type GoLog interface {
 	logrus.FieldLogger
 	SetLevel(string) *log
+	SetSubComponent(action string) *log
 	SetAction(action string) *log
 	SetStep(step string) *log
 	SetAPI(string, string, string) *log
@@ -50,6 +56,15 @@ func (l *log) SetLevel(level string) *log {
 		// set default logger and the custom logger levels
 		logrus.SetLevel(loglevel)
 		l.entry.Logger.SetLevel(loglevel)
+	}
+	return l
+}
+
+// SetSubComponent adds the sub component (event, register) field to each log message if provided
+func (l *log) SetSubComponent(subComp string) *log {
+	if subComp != "" {
+		l.subcomponent = subComp
+		l.Entry = l.WithField("subcomponent", l.subcomponent)
 	}
 	return l
 }
@@ -91,14 +106,36 @@ func (l *log) SetAPI(endpoint, payload, response string) *log {
 	return l
 }
 
+// SetAudit sets the endpoint, payload, and response of an api call
+func (l *log) SetAudit(audittype, user, newdata, olddata string) *log {
+	l.audittype = audittype
+	l.Entry = l.WithField("audittype", l.audittype)
+
+	l.user = user
+	l.Entry = l.WithField("user", l.user)
+
+	l.newdata = newdata
+	l.Entry = l.WithField("newdata", l.newdata)
+
+	l.olddata = olddata
+	l.Entry = l.WithField("olddata", l.olddata)
+
+	return l
+}
+
 // GetLogger returns the logrus object
 func (l *log) GetLogger() *log {
 	l.Entry = l.entry
+	l.subcomponent = ""
 	l.action = ""
 	l.step = ""
 	l.endpoint = ""
 	l.payload = ""
 	l.response = ""
+	l.audittype = ""
+	l.user = ""
+	l.newdata = ""
+	l.olddata = ""
 	return l
 }
 
