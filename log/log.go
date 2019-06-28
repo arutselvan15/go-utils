@@ -23,6 +23,7 @@ type log struct {
 	*logrus.Entry
 	entry        *logrus.Entry
 	subcomponent string
+	objectname   string
 	action       string
 	step         string
 	endpoint     string
@@ -37,7 +38,8 @@ type log struct {
 type GoLog interface {
 	logrus.FieldLogger
 	SetLevel(string) *log
-	SetSubComponent(action string) *log
+	SetSubComponent(subcomponent string) *log
+	SetObjectName(objectname string) *log
 	SetAction(action string) *log
 	SetStep(step string) *log
 	SetAPI(string, string, string) *log
@@ -65,6 +67,15 @@ func (l *log) SetSubComponent(subComp string) *log {
 	if subComp != "" {
 		l.subcomponent = subComp
 		l.Entry = l.WithField("subcomponent", l.subcomponent)
+	}
+	return l
+}
+
+// SetObjectName adds object name (app-foo, app-bar) field to each log message if provided
+func (l *log) SetObjectName(objectname string) *log {
+	if objectname != "" {
+		l.objectname = objectname
+		l.Entry = l.WithField("objectname", l.objectname)
 	}
 	return l
 }
@@ -127,6 +138,7 @@ func (l *log) SetAudit(audittype, user, newdata, olddata string) *log {
 func (l *log) GetLogger() *log {
 	l.Entry = l.entry
 	l.subcomponent = ""
+	l.objectname = ""
 	l.action = ""
 	l.step = ""
 	l.endpoint = ""
