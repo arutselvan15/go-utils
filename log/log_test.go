@@ -9,6 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+
+	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 func init() {
@@ -585,4 +587,21 @@ func TestThreadedSaveRestore(t *testing.T) {
 	t2log.RestoreContext()
 	assertAllFields(t, t1log, "initial")
 	assertAllFields(t, t2log, "initial")
+}
+
+func TestAllLogConstants(t *testing.T) {
+	logger := newLogger()
+
+	actions := []string{
+		logconstants.OnAdd, logconstants.OnUpdate, logconstants.OnDelete,
+		logconstants.Create, logconstants.Update, logconstants.Delete,
+		logconstants.Get, logconstants.Save, logconstants.Read,
+		logconstants.Audit, logconstants.Validate,
+		logconstants.Start, logconstants.End, logconstants.Success, logconstants.Failure,
+	}
+
+	for _, action := range actions {
+		logger.SetAction(action)
+		logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) { assert.Equal(t, action, fields["action"]) })
+	}
 }
