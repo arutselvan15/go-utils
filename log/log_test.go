@@ -15,7 +15,7 @@ func init() {
 	_ = os.Setenv("CLUSTER", "test_cluster")
 }
 
-func logAndAssertJSON(_ *testing.T, log *log, message string, assertions func(fields logrus.Fields)) {
+func logAndAssertJSON(_ *testing.T, log *Log, message string, assertions func(fields logrus.Fields)) {
 	var buffer bytes.Buffer
 	var fields logrus.Fields
 
@@ -28,7 +28,7 @@ func logAndAssertJSON(_ *testing.T, log *log, message string, assertions func(fi
 	assertions(fields)
 }
 
-func newLogger() *log {
+func newLogger() *Log {
 	return NewLogger("test_component")
 }
 
@@ -75,13 +75,13 @@ func TestSetDisposition(t *testing.T) {
 }
 
 func TestSetInvolvedObj(t *testing.T) {
-	involedObj := "test_involved_object"
+	involvedObj := "test_involved_object"
 	logger := newLogger()
-	logger.SetInvolvedObj(involedObj)
+	logger.SetInvolvedObj(involvedObj)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, involedObj, fields["involved_object"])
+		assert.Equal(t, involvedObj, fields["involved_object"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -163,13 +163,13 @@ func TestSetProcess(t *testing.T) {
 }
 
 func TestSetSubProcess(t *testing.T) {
-	subprocess := "test_subprocess"
+	subProcess := "test_subprocess"
 	logger := newLogger()
-	logger.SetSubProcess(subprocess)
+	logger.SetSubProcess(subProcess)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, subprocess, fields["subProcess"])
+		assert.Equal(t, subProcess, fields["subProcess"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -286,7 +286,7 @@ func TestSetLevel(t *testing.T) {
 		assert.Equal(t, "info", fields["level"])
 	})
 
-	// log event is of type info will not be processed because log level should be
+	// Log event is of type info will not be processed because Log level should be
 	// panic and above
 	level = "panic"
 	logger.SetLevel(level)
@@ -298,7 +298,7 @@ func TestSetLevel(t *testing.T) {
 	})
 }
 
-func assertAllFields(t *testing.T, log *log, prefix string) {
+func assertAllFields(t *testing.T, log *Log, prefix string) {
 	endpoint := prefix + "test_endpoint"
 	request := prefix + "test_request"
 	response := prefix + "test_response"
@@ -319,7 +319,7 @@ func assertAllFields(t *testing.T, log *log, prefix string) {
 	})
 }
 
-func setAllFields(log *log, prefix string) {
+func setAllFields(log *Log, prefix string) {
 	endpoint := prefix + "test_endpoint"
 	request := prefix + "test_request"
 	response := prefix + "test_response"
@@ -332,7 +332,6 @@ func setAllFields(log *log, prefix string) {
 	log.SetInvolvedObj(prefix + "unit-test")
 	log.SetLevel("info")
 	log.SetUser(prefix + "testuser")
-
 }
 
 func TestAllFields(t *testing.T) {
@@ -396,7 +395,7 @@ func TestLogStack(t *testing.T) {
 	})
 }
 
-func saveRestore(log *log, t *testing.T) {
+func saveRestore(log *Log, t *testing.T) {
 	// Initial context
 	log.SetProcess("TestSaveRestore").SetAction("BeforeSave")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {

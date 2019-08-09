@@ -17,7 +17,8 @@ import (
 // ensure the formatted time is always the same number of characters.
 const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 
-type log struct {
+// Log log
+type Log struct {
 	*logrus.Entry
 
 	// creator
@@ -48,29 +49,29 @@ type log struct {
 //UtilsLog log
 type UtilsLog interface {
 	logrus.FieldLogger
-	SetLevel(string) *log
-	SetSubComponent(string) *log
-	SetProcess(process string) *log
-	SetSubProcess(subProcess string) *log
-	SetAction(action string) *log
-	SetUser(user string) *log
-	SetInvolvedObj(involvedObj string) *log
-	SetDisposition(disposition string) *log
-	SetAPIRequest(string, string) *log
-	SetAPIResponse(string, string) *log
+	SetLevel(string) *Log
+	SetSubComponent(string) *Log
+	SetProcess(process string) *Log
+	SetSubProcess(subProcess string) *Log
+	SetAction(action string) *Log
+	SetUser(user string) *Log
+	SetInvolvedObj(involvedObj string) *Log
+	SetDisposition(disposition string) *Log
+	SetAPIRequest(string, string) *Log
+	SetAPIResponse(string, string) *Log
 	Event(string, ...interface{})
-	SetObjectAudit(...interface{}) *log
-	GetLogger() *log
+	SetObjectAudit(...interface{}) *Log
+	GetLogger() *Log
 	PushContext()
 	PopContext()
 	SaveContext()
 	RestoreContext()
 	PushPop(f func())
-	ThreadLogger() *log
+	ThreadLogger() *Log
 }
 
 // SetObjectAudit sets the object audit data and type
-func (l *log) SetObjectAudit(objects ...interface{}) *log {
+func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 	if len(objects) == 1 {
 		// create
 		l.objectAuditType = "create"
@@ -98,7 +99,7 @@ func (l *log) SetObjectAudit(objects ...interface{}) *log {
 }
 
 // SetLevel sets the level at which log messages are published/written.
-func (l *log) SetLevel(level string) *log {
+func (l *Log) SetLevel(level string) *Log {
 	// If there's no explicit logging level specified, set the level to INFO
 	if level == "" {
 		level = "info"
@@ -114,8 +115,8 @@ func (l *log) SetLevel(level string) *log {
 	return l
 }
 
-// SetAPI sets the endpoint, payload, and response of an api call
-func (l *log) SetAPIRequest(endpoint, request string) *log {
+// SetAPIRequest sets the endpoint, payload, and response of an api call
+func (l *Log) SetAPIRequest(endpoint, request string) *Log {
 
 	if endpoint == "" {
 		delete(l.Data, "api_endpoint")
@@ -136,7 +137,8 @@ func (l *log) SetAPIRequest(endpoint, request string) *log {
 	return l
 }
 
-func (l *log) SetAPIResponse(endpoint, response string) *log {
+// SetAPIResponse SetAPIResponse
+func (l *Log) SetAPIResponse(endpoint, response string) *Log {
 
 	if endpoint == "" {
 		delete(l.Data, "api_endpoint")
@@ -157,8 +159,8 @@ func (l *log) SetAPIResponse(endpoint, response string) *log {
 	return l
 }
 
-// SetSubComponent adds the sub component (ping, am, cert, etc.) field to to each log message if provided
-func (l *log) SetSubComponent(sc string) *log {
+// SetSubComponent adds the sub component (ping, am, cert, etc.) field to to each Log message if provided
+func (l *Log) SetSubComponent(sc string) *Log {
 	if sc == "" {
 		delete(l.Data, "subComponent")
 		l.subComponent = ""
@@ -170,8 +172,8 @@ func (l *log) SetSubComponent(sc string) *log {
 	return l
 }
 
-// SetProcess adds the process (CreateProject, DeleteProject, etc.) field to each log message if provided
-func (l *log) SetProcess(process string) *log {
+// SetProcess adds the process (CreateProject, DeleteProject, etc.) field to each Log message if provided
+func (l *Log) SetProcess(process string) *Log {
 	if process == "" {
 		delete(l.Data, "process")
 		l.process = ""
@@ -184,7 +186,7 @@ func (l *log) SetProcess(process string) *log {
 }
 
 // SetSubProcess adds the subProcess field to each log message if provided
-func (l *log) SetSubProcess(subProcess string) *log {
+func (l *Log) SetSubProcess(subProcess string) *Log {
 	if subProcess == "" {
 		delete(l.Data, "subProcess")
 		l.subProcess = ""
@@ -197,7 +199,7 @@ func (l *log) SetSubProcess(subProcess string) *log {
 }
 
 // SetAction adds the action into the log (configureProjectAdmin, configureRBAC and etc.)
-func (l *log) SetAction(action string) *log {
+func (l *Log) SetAction(action string) *Log {
 	if action == "" {
 		delete(l.Data, "action")
 		l.action = ""
@@ -210,7 +212,7 @@ func (l *log) SetAction(action string) *log {
 }
 
 // SetUser adds the user field to each log message if provided
-func (l *log) SetUser(user string) *log {
+func (l *Log) SetUser(user string) *Log {
 	if user == "" {
 		delete(l.Data, "user")
 		l.user = ""
@@ -223,7 +225,7 @@ func (l *log) SetUser(user string) *log {
 }
 
 // SetInvolvedObj adds the involved object (route name, project name, etc.) field to each log message if provided
-func (l *log) SetInvolvedObj(involvedObj string) *log {
+func (l *Log) SetInvolvedObj(involvedObj string) *Log {
 	if involvedObj == "" {
 		delete(l.Data, "involved_object")
 		l.involvedObj = ""
@@ -236,7 +238,7 @@ func (l *log) SetInvolvedObj(involvedObj string) *log {
 }
 
 // SetDisposition adds the disposition (Success/Fail of the process and/or action) field to each log message if provided
-func (l *log) SetDisposition(disposition string) *log {
+func (l *Log) SetDisposition(disposition string) *Log {
 	if disposition == "" {
 		delete(l.Data, "disposition")
 		l.disposition = ""
@@ -248,16 +250,18 @@ func (l *log) SetDisposition(disposition string) *log {
 	return l
 }
 
-func (l *log) Event(format string, args ...interface{}) {
+// Event Event
+func (l *Log) Event(format string, args ...interface{}) {
 	l.PushContext()
 	l.SetAction("Event").Infof(format, args)
 	l.PopContext()
 }
 
+// SaveContext SaveContext
 // Save the current context for later restore.
 // This saves the current fields and the current stack.
 // After this call, the current context is intact, but has a new empty stack.
-func (l *log) SaveContext() {
+func (l *Log) SaveContext() {
 	// create a new context
 	c := l.GetLogger()
 	// copy state from existing
@@ -273,47 +277,51 @@ func (l *log) SaveContext() {
 	// stack) is saved in the saved stack.
 }
 
+// RestoreContext function
 // If previously saved, this restores the saved context.
 // This restores the previouosly saved field and the previous stack.
 // Anything in the stack between Save/Restore is gone.
-func (l *log) RestoreContext() {
+func (l *Log) RestoreContext() {
 	// If no saves, do nothing
 	if l.savedContexts.Len() == 0 {
 		return
 	}
 	// Get the last saved full context
-	c := l.savedContexts.Pop().(*log)
+	c := l.savedContexts.Pop().(*Log)
 	// Restore saved push/pop stack
 	l.contextStack = c.contextStack
 	// Restore context data
 	l.copyContextFrom(c)
 }
 
-func (l *log) PushContext() {
+// PushContext PushContext
+func (l *Log) PushContext() {
 	// push and pop by value, not by reference
 	l.contextStack.Push(*l)
 }
 
-func (l *log) PopContext() {
+// PopContext PopContext
+func (l *Log) PopContext() {
 	// Do nothing if nothing there
 	if l.contextStack.Len() == 0 {
 		return
 	}
 
-	pop := l.contextStack.Pop().(log)
+	pop := l.contextStack.Pop().(Log)
 
 	l.copyContextFrom(&pop)
 }
 
+// PushPop function
 // Run the function within a push/pop
-func (l *log) PushPop(f func()) {
+func (l *Log) PushPop(f func()) {
 	l.PushContext()
 	f()
 	l.PopContext()
 }
 
 // Doesn't copy the stack, just the fields
-func (l *log) copyContextFrom(from *log) *log {
+func (l *Log) copyContextFrom(from *Log) *Log {
 	l.component = from.component
 	l.logger = from.logger
 	l.Entry = from.logger.WithFields(logrus.Fields{
@@ -334,7 +342,7 @@ func (l *log) copyContextFrom(from *log) *log {
 	return l
 }
 
-func (l *log) setObjectAudit(auditType string, data string) {
+func (l *Log) setObjectAudit(auditType string, data string) {
 	if auditType != "" {
 		l.objectAuditType = auditType
 		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
@@ -346,7 +354,7 @@ func (l *log) setObjectAudit(auditType string, data string) {
 	}
 }
 
-func (l *log) clear() {
+func (l *Log) clear() {
 	l.Entry = l.logger.WithFields(logrus.Fields{
 		"cluster":   os.Getenv("CLUSTER"),
 		"component": l.component,
@@ -366,8 +374,8 @@ func (l *log) clear() {
 	l.objectAuditType = ""
 }
 
-func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *log {
-	nl := &log{
+func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *Log {
+	nl := &Log{
 		component:     component,
 		logger:        logger,
 		contextStack:  contextStack,
@@ -381,14 +389,16 @@ func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, 
 // GetLogger creates and returns a new logging context.
 // A logging context is a wrapper for a log entry for a logger.  These objects can NOT be used
 // in parallel.
-func (l *log) GetLogger() *log {
+// GetLogger GetLogger
+func (l *Log) GetLogger() *Log {
 	nl := newLog(l.logger, l.component, l.contextStack, l.savedContexts)
 	return nl
 }
 
 // ThreadLogger clones the logger, but gives it a new set of stacks.
 // This allows the thread to do all context stuff independently of other threads
-func (l *log) ThreadLogger() *log {
+// ThreadLogger ThreadLogger
+func (l *Log) ThreadLogger() *Log {
 	// create the context stacks
 	stack1 := stack.New()
 	stack2 := stack.New()
@@ -401,7 +411,7 @@ func (l *log) ThreadLogger() *log {
 }
 
 //NewLoggerWithFile log
-func NewLoggerWithFile(component string, filename string) *log {
+func NewLoggerWithFile(component string, filename string) *Log {
 	logger := logrus.New()
 
 	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
@@ -439,6 +449,6 @@ func NewLoggerWithFile(component string, filename string) *log {
 }
 
 // NewLogger creates a logger context for a newly created logging output.
-func NewLogger(component string) *log {
-	return NewLoggerWithFile(component, "/log/go-"+component+".log")
+func NewLogger(component string) *Log {
+	return NewLoggerWithFile(component, "/log/go-"+component+".Log")
 }
