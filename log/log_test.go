@@ -169,7 +169,7 @@ func TestSetSubProcess(t *testing.T) {
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, subprocess, fields["subprocess"])
+		assert.Equal(t, subprocess, fields["subProcess"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -180,7 +180,7 @@ func TestSetSubProcess(t *testing.T) {
 		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["subprocess"])
+		assert.Nil(t, fields["subProcess"])
 	})
 }
 
@@ -191,7 +191,7 @@ func TestSetSubComponent(t *testing.T) {
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, subComponent, fields["subcomponent"])
+		assert.Equal(t, subComponent, fields["subComponent"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -202,7 +202,7 @@ func TestSetSubComponent(t *testing.T) {
 		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["subcomponent"])
+		assert.Nil(t, fields["subComponent"])
 	})
 }
 
@@ -239,7 +239,7 @@ func TestSetApi(t *testing.T) {
 
 func TestSetObjectAudit(t *testing.T) {
 	type Quota struct {
-		Ram     string
+		RAM     string
 		Storage string
 	}
 
@@ -250,8 +250,8 @@ func TestSetObjectAudit(t *testing.T) {
 		Quota         Quota
 	}
 
-	p1 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{Ram: "1Gi", Storage: "10Gi"}}
-	p1v2 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{Ram: "1Gi", Storage: "11Gi"}}
+	p1 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{RAM: "1Gi", Storage: "10Gi"}}
+	p1v2 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{RAM: "1Gi", Storage: "11Gi"}}
 
 	logger := newLogger()
 	logger.SetObjectAudit(p1)
@@ -311,7 +311,7 @@ func assertAllFields(t *testing.T, log *log, prefix string) {
 		assert.Equal(t, prefix+"testAllFields", fields["process"])
 		assert.Equal(t, prefix+"SUCCESS", fields["disposition"])
 		assert.Equal(t, prefix+"Test", fields["action"])
-		assert.Equal(t, prefix+"allFields", fields["subcomponent"])
+		assert.Equal(t, prefix+"allFields", fields["subComponent"])
 		assert.Equal(t, prefix+"unit-test", fields["involved_object"])
 		assert.Equal(t, prefix+"testuser", fields["user"])
 		assert.Equal(t, "test", fields["msg"])

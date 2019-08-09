@@ -6,6 +6,7 @@ import (
 	r3 "github.com/r3labs/diff"
 )
 
+//GetDiffChangelog log
 func GetDiffChangelog(oldObj, newObj interface{}) (*r3.Changelog, error) {
 	if r3.Changed(oldObj, newObj) {
 		changelog, err := r3.Diff(oldObj, newObj)
@@ -18,6 +19,7 @@ func GetDiffChangelog(oldObj, newObj interface{}) (*r3.Changelog, error) {
 	return nil, nil
 }
 
+//GetDiffString log
 func GetDiffString(oldObj, newObj interface{}) ([]string, error) {
 	var results []string
 

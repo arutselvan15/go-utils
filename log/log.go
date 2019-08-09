@@ -31,9 +31,9 @@ type log struct {
 
 	// fields
 	component       string
-	subcomponent    string
+	subComponent    string
 	process         string
-	subprocess      string
+	subProcess      string
 	action          string
 	user            string
 	involvedObj     string
@@ -45,6 +45,7 @@ type log struct {
 	objectAuditData string
 }
 
+//UtilsLog log
 type UtilsLog interface {
 	logrus.FieldLogger
 	SetLevel(string) *log
@@ -159,11 +160,11 @@ func (l *log) SetAPIResponse(endpoint, response string) *log {
 // SetSubComponent adds the sub component (ping, am, cert, etc.) field to to each log message if provided
 func (l *log) SetSubComponent(sc string) *log {
 	if sc == "" {
-		delete(l.Data, "subcomponent")
-		l.subcomponent = ""
+		delete(l.Data, "subComponent")
+		l.subComponent = ""
 	} else {
-		l.subcomponent = sc
-		l.Entry = l.WithField("subcomponent", l.subcomponent)
+		l.subComponent = sc
+		l.Entry = l.WithField("subComponent", l.subComponent)
 	}
 
 	return l
@@ -182,14 +183,14 @@ func (l *log) SetProcess(process string) *log {
 	return l
 }
 
-// SetSubProcess adds the subprocess field to each log message if provided
+// SetSubProcess adds the subProcess field to each log message if provided
 func (l *log) SetSubProcess(subProcess string) *log {
 	if subProcess == "" {
-		delete(l.Data, "subprocess")
-		l.subprocess = ""
+		delete(l.Data, "subProcess")
+		l.subProcess = ""
 	} else {
-		l.subprocess = subProcess
-		l.Entry = l.WithField("subprocess", l.subprocess)
+		l.subProcess = subProcess
+		l.Entry = l.WithField("subProcess", l.subProcess)
 	}
 
 	return l
@@ -319,9 +320,9 @@ func (l *log) copyContextFrom(from *log) *log {
 		"cluster":   os.Getenv("CLUSTER"),
 		"component": from.component,
 	})
-	l.SetSubComponent(from.subcomponent)
+	l.SetSubComponent(from.subComponent)
 	l.SetProcess(from.process)
-	l.SetSubProcess(from.subprocess)
+	l.SetSubProcess(from.subProcess)
 	l.SetAction(from.action)
 	l.SetUser(from.user)
 	l.SetInvolvedObj(from.involvedObj)
@@ -351,9 +352,9 @@ func (l *log) clear() {
 		"component": l.component,
 	})
 
-	l.subcomponent = ""
+	l.subComponent = ""
 	l.process = ""
-	l.subprocess = ""
+	l.subProcess = ""
 	l.action = ""
 	l.user = ""
 	l.involvedObj = ""
@@ -365,7 +366,7 @@ func (l *log) clear() {
 	l.objectAuditType = ""
 }
 
-func newlog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *log {
+func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *log {
 	nl := &log{
 		component:     component,
 		logger:        logger,
@@ -381,24 +382,25 @@ func newlog(logger *logrus.Logger, component string, contextStack *stack.Stack, 
 // A logging context is a wrapper for a log entry for a logger.  These objects can NOT be used
 // in parallel.
 func (l *log) GetLogger() *log {
-	nl := newlog(l.logger, l.component, l.contextStack, l.savedContexts)
+	nl := newLog(l.logger, l.component, l.contextStack, l.savedContexts)
 	return nl
 }
 
 // ThreadLogger clones the logger, but gives it a new set of stacks.
-// This allows the thread to do all context stuff independenly of other threads
+// This allows the thread to do all context stuff independently of other threads
 func (l *log) ThreadLogger() *log {
 	// create the context stacks
 	stack1 := stack.New()
 	stack2 := stack.New()
 
 	// create the initial logging context
-	nlog := newlog(l.logger, l.component, stack1, stack2)
+	nlog := newLog(l.logger, l.component, stack1, stack2)
 	// populate with existing context
 	nlog.copyContextFrom(l)
 	return nlog
 }
 
+//NewLoggerWithFile log
 func NewLoggerWithFile(component string, filename string) *log {
 	logger := logrus.New()
 
@@ -431,12 +433,12 @@ func NewLoggerWithFile(component string, filename string) *log {
 	stack2 := stack.New()
 
 	// create the initial logging context
-	nlog := newlog(logger, component, stack1, stack2)
+	nlog := newLog(logger, component, stack1, stack2)
 
 	return nlog
 }
 
 // NewLogger creates a logger context for a newly created logging output.
 func NewLogger(component string) *log {
-	return NewLoggerWithFile(component, "/log/felix-"+component+".log")
+	return NewLoggerWithFile(component, "/log/go-"+component+".log")
 }
