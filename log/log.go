@@ -11,11 +11,37 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/arutselvan15/go-utils/diff"
+	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 // RFC3339NanoFixed is time.RFC3339Nano with nanoseconds padded using zeros to
 // ensure the formatted time is always the same number of characters.
 const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
+
+//CustomLog log
+type CustomLog interface {
+	logrus.FieldLogger
+	GetEntry() *logrus.Entry
+	SetLevel(string) *Log
+	SetSubComponent(string) *Log
+	SetProcess(process string) *Log
+	SetSubProcess(subProcess string) *Log
+	SetAction(action string) *Log
+	SetUser(user string) *Log
+	SetInvolvedObj(involvedObj string) *Log
+	SetDisposition(disposition string) *Log
+	SetAPIRequest(string, string) *Log
+	SetAPIResponse(string, string) *Log
+	Event(string, ...interface{})
+	SetObjectAudit(...interface{}) *Log
+	GetLogger() *Log
+	PushContext()
+	PopContext()
+	SaveContext()
+	RestoreContext()
+	PushPop(f func())
+	ThreadLogger() *Log
+}
 
 // Log log
 type Log struct {
@@ -46,35 +72,16 @@ type Log struct {
 	objectAuditData string
 }
 
-//UtilsLog log
-type UtilsLog interface {
-	logrus.FieldLogger
-	SetLevel(string) *Log
-	SetSubComponent(string) *Log
-	SetProcess(process string) *Log
-	SetSubProcess(subProcess string) *Log
-	SetAction(action string) *Log
-	SetUser(user string) *Log
-	SetInvolvedObj(involvedObj string) *Log
-	SetDisposition(disposition string) *Log
-	SetAPIRequest(string, string) *Log
-	SetAPIResponse(string, string) *Log
-	Event(string, ...interface{})
-	SetObjectAudit(...interface{}) *Log
-	GetLogger() *Log
-	PushContext()
-	PopContext()
-	SaveContext()
-	RestoreContext()
-	PushPop(f func())
-	ThreadLogger() *Log
+// GetEntry get entry
+func (l *Log) GetEntry() *logrus.Entry {
+	return l.Entry
 }
 
 // SetObjectAudit sets the object audit data and type
 func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 	if len(objects) == 1 {
 		// create
-		l.objectAuditType = "create"
+		l.objectAuditType = logconstants.Create
 		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
 		yamlBytes, _ := yaml.Marshal(objects[0])
 		l.objectAuditData = string(yamlBytes)
@@ -82,7 +89,7 @@ func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 
 	} else if len(objects) == 2 {
 		// update and look at first 2
-		l.objectAuditType = "update"
+		l.objectAuditType = logconstants.Update
 		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
 		ch, _ := diff.GetDiffChangelog(objects[0], objects[1])
 		data := ""
@@ -374,18 +381,6 @@ func (l *Log) clear() {
 	l.objectAuditType = ""
 }
 
-func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *Log {
-	nl := &Log{
-		component:     component,
-		logger:        logger,
-		contextStack:  contextStack,
-		savedContexts: savedContexts,
-	}
-
-	nl.clear()
-	return nl
-}
-
 // GetLogger creates and returns a new logging context.
 // A logging context is a wrapper for a log entry for a logger.  These objects can NOT be used
 // in parallel.
@@ -411,9 +406,18 @@ func (l *Log) ThreadLogger() *Log {
 }
 
 //NewLoggerWithFile log
-func NewLoggerWithFile(component string, filename string) *Log {
+func NewLoggerWithFile(component string, filename string) CustomLog {
 	logger := logrus.New()
 
+	logrus.SetOutput(colorable.NewColorableStdout())
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:      true,
+		FullTimestamp:    true,
+		QuoteEmptyFields: true,
+		TimestampFormat:  RFC3339NanoFixed,
+	})
+
+	// log file
 	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   filename,
 		MaxSize:    250,
@@ -429,13 +433,6 @@ func NewLoggerWithFile(component string, filename string) *Log {
 		logrus.Fatalf("Failed to initialize file rotate hook: %v", err)
 	}
 
-	logrus.SetOutput(colorable.NewColorableStdout())
-	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:      true,
-		FullTimestamp:    true,
-		QuoteEmptyFields: true,
-		TimestampFormat:  RFC3339NanoFixed,
-	})
 	logger.AddHook(rotateFileHook)
 
 	// create the shared context stacks
@@ -449,6 +446,34 @@ func NewLoggerWithFile(component string, filename string) *Log {
 }
 
 // NewLogger creates a logger context for a newly created logging output.
-func NewLogger(component string) *Log {
-	return NewLoggerWithFile(component, "/log/go-"+component+".Log")
+func NewLogger(component string) CustomLog {
+	logger := logrus.New()
+
+	logrus.SetOutput(colorable.NewColorableStdout())
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:      true,
+		FullTimestamp:    true,
+		QuoteEmptyFields: true,
+		TimestampFormat:  RFC3339NanoFixed,
+	})
+
+	// create the shared context stacks
+	stack1 := stack.New()
+	stack2 := stack.New()
+
+	// create the initial logging context
+	nlog := newLog(logger, component, stack1, stack2)
+	return nlog
+}
+
+func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *Log {
+	nl := &Log{
+		component:     component,
+		logger:        logger,
+		contextStack:  contextStack,
+		savedContexts: savedContexts,
+	}
+
+	nl.clear()
+	return nl
 }

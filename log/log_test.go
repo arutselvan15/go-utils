@@ -6,11 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/arutselvan15/go-utils/logconstants"
+	"github.com/golang-collections/collections/stack"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-
-	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 func init() {
@@ -31,16 +31,7 @@ func logAndAssertJSON(_ *testing.T, log *Log, message string, assertions func(fi
 }
 
 func newLogger() *Log {
-	return NewLogger("test_component")
-}
-
-func TestNewLogger(t *testing.T) {
-	logAndAssertJSON(t, newLogger(), "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
+	return newLog(logrus.New(), "test_component", stack.New(), stack.New())
 }
 
 func TestGetLogger(t *testing.T) {
@@ -263,7 +254,7 @@ func TestSetObjectAudit(t *testing.T) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "create", fields["object_audit_type"])
+		assert.Equal(t, logconstants.Create, fields["object_audit_type"])
 		assert.Equal(t, string(yamlBytes), fields["object_audit_data"])
 	})
 
@@ -272,7 +263,7 @@ func TestSetObjectAudit(t *testing.T) {
 		assert.Equal(t, "test_cluster", fields["cluster"])
 		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "update", fields["object_audit_type"])
+		assert.Equal(t, logconstants.Update, fields["object_audit_type"])
 		assert.Equal(t, "([Quota Storage], update, 10Gi, 11Gi)\n", fields["object_audit_data"])
 	})
 }
@@ -603,5 +594,57 @@ func TestAllLogConstants(t *testing.T) {
 	for _, action := range actions {
 		logger.SetAction(action)
 		logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) { assert.Equal(t, action, fields["action"]) })
+	}
+}
+
+func TestNewLoggerWithFile(t *testing.T) {
+	type args struct {
+		component string
+		filename  string
+	}
+	tests := []struct {
+		name string
+		args args
+		want CustomLog
+	}{
+		{
+			name: "success new logger with file",
+			args: args{component: "test_component", filename: "/tmp/test.log"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewLoggerWithFile(tt.args.component, tt.args.filename)
+			if got == nil {
+				t.Errorf("NewLoggerWithFile() = %v, want customlog", got)
+				return
+			}
+			got.Info("test log")
+		})
+	}
+}
+
+func TestNewLogger(t *testing.T) {
+	type args struct {
+		component string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "success newlogger",
+			args: args{component: "test_component"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewLogger(tt.args.component)
+			if got == nil {
+				t.Errorf("NewLogger() = %v, want customlog", got)
+				return
+			}
+			got.Info("test log")
+		})
 	}
 }
