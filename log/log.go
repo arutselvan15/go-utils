@@ -18,8 +18,8 @@ import (
 // ensure the formatted time is always the same number of characters.
 const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 
-//CustomLog log
-type CustomLog interface {
+//GoLog log
+type GoLog interface {
 	logrus.FieldLogger
 	GetEntry() *logrus.Entry
 	SetLevel(string) *Log
@@ -406,7 +406,7 @@ func (l *Log) ThreadLogger() *Log {
 }
 
 //NewLoggerWithFile log
-func NewLoggerWithFile(component string, filename string) CustomLog {
+func NewLoggerWithFile(component string, filename string) GoLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -446,7 +446,7 @@ func NewLoggerWithFile(component string, filename string) CustomLog {
 }
 
 // NewLogger creates a logger context for a newly created logging output.
-func NewLogger(component string) CustomLog {
+func NewLogger(component string) GoLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())

@@ -605,7 +605,6 @@ func TestNewLoggerWithFile(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want CustomLog
 	}{
 		{
 			name: "success new logger with file",
