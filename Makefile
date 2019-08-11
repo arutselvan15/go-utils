@@ -3,7 +3,9 @@ APP_DISPLAY_NAME=Utils
 PROJECT_NAME=go-${APP_NAME}
 
 GOLINTV=v1.16.0
-GO=GOOS=linux GOARCH=amd64 GO111MODULE=on go
+GOARGS=GOOS=linux GOARCH=amd64 GO111MODULE=on
+GO=${GOARGS} go
+GOLINT=${GOARGS} golangci-lint
 
 BUILD=$(or ${BUILD_NUMBER},0)
 VERSION=v0.1.${BUILD}
@@ -52,7 +54,7 @@ fmt:
 
 check: fmt
 	@echo "==> Code Check..."
-	golangci-lint run --fast --tests
+	${GOLINT} run --fast --tests
 
 build:
 	@echo "==> Build local..."
