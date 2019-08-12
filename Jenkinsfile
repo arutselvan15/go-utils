@@ -3,21 +3,31 @@
 pipeline{
     agent any
     stages{
-        stage("Code Checkout"){
-            steps{
-                checkout scm
-                echo "done"
-            }
-        }
         stage("Test"){
             steps{
-                echo "done"
+                make test
             }
         }
         stage("Build"){
             steps{
-                echo "done"
+                make build
             }
         }
+        stage("Create Image"){
+            steps{
+                make docker-build
+            }
+        }
+        stage("Push Image"){
+            steps{
+                make docker-push
+            }
+        }
+        stage("Archive"){
+            steps{
+                echo "Archive and cleanup..."
+            }
+        }
+
     }    
 }
