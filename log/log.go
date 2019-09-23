@@ -260,7 +260,7 @@ func (l *Log) SetDisposition(disposition string) *Log {
 // Event Event
 func (l *Log) Event(format string, args ...interface{}) {
 	l.PushContext()
-	l.SetAction("Event").Infof(format, args)
+	l.SetAction("Event").Infof(format, args...)
 	l.PopContext()
 }
 
