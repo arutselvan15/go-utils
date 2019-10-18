@@ -1,28 +1,46 @@
 #!/usr/bin/env groovy
 
 pipeline{
-    //agent any
-    agent any
-
+    agent { 
+        docker { 
+            image 'arutselvan15/golang:1.12.4'
+        }
+    }
+    environment {
+        GOCACHE = '/tmp'
+    }
     stages{
+        stage("Checkout"){
+            steps{
+                echo "Git checkout ..."
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: '*/master']
+                ],
+                userRemoteConfigs: [[
+                    url: 'https://github.com/arutselvan15/go-utils.git']]
+                ])
+            }
+        }
         stage("Test"){
             steps{
-                make test
+                echo "Run Test ..."
+                sh "make test"
             }
         }
         stage("Build"){
             steps{
-                make build
+                echo "Run Build ..."
             }
         }
         stage("Create Image"){
             steps{
-                make docker-build
+                echo "Create Image ..."
             }
         }
         stage("Push Image"){
             steps{
-                make docker-push
+                echo "Push Image ..."
             }
         }
         stage("Archive"){
@@ -30,26 +48,27 @@ pipeline{
                 echo "Archive and cleanup..."
             }
         }
-    }
+
+    }    
     post {
         always {
-            echo 'This will always run'
-            slackSend   channel: '#jenkins',
-                        color: 'good',
-                        message: "The pipeline ${currentBuild.fullDisplayName} completed successfully."
+            echo 'Build End'
         }
         success {
-            echo 'This will run only if successful'
+            echo 'Build completed successfully'
+            slackSend(channel: '#jenkins', color: 'good', message: "The pipeline ${currentBuild.fullDisplayName} completed successfully.")
         }
         failure {
-            echo 'This will run only if failed'
+            echo 'Builld failure'
+            slackSend(channel: '#jenkins', color: 'red', message: "The pipeline ${currentBuild.fullDisplayName} build failed.")
         }
         unstable {
-            echo 'This will run only if the run was marked as unstable'
+            echo 'Build unstable'
+            slackSend(channel: '#jenkins', color: 'red', message: "The pipeline ${currentBuild.fullDisplayName} is unstable.")
         }
         changed {
-            echo 'This will run only if the state of the Pipeline has changed'
-            echo 'For example, if the Pipeline was previously failing but is now successful'
+            echo 'Build state changed'
+            slackSend(channel: '#jenkins', color: 'good', message: "The pipeline ${currentBuild.fullDisplayName} state changed.")
         }
     }
 }
