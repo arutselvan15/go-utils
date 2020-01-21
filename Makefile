@@ -1,4 +1,6 @@
-GO=GOOS=linux GOARCH=amd64 GO111MODULE=on go
+GO=GO111MODULE=on go
+GO_CROSS_CMPL=GOOS=linux GOARCH=amd64 ${GO}
+
 BINARY=bin/go-utils
 MAIN_GO=cmd/main.go
 
