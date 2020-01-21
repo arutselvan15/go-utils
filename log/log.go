@@ -16,11 +16,22 @@ import (
 // ensure the formatted time is always the same number of characters.
 const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 
+type FormatterType string
+type LevelLog string
+
+var (
+	TextFormatterType FormatterType = "text"
+	JsonFormatterType FormatterType = "json"
+	DebugLevel        LevelLog      = "debug"
+	InfoLevel         LevelLog      = "info"
+	PanicLevel        LevelLog      = "panic"
+)
+
 //GoLog log
 type GoLog interface {
 	logrus.FieldLogger
 	GetEntry() *logrus.Entry
-	SetLevel(string) *Log
+	SetLevel(LevelLog) *Log
 	SetCluster(string) *Log
 	SetComponent(string) *Log
 	SetSubComponent(string) *Log
@@ -34,6 +45,8 @@ type GoLog interface {
 	SetAPIResponse(string, string) *Log
 	Event(string, ...interface{})
 	SetObjectAudit(...interface{}) *Log
+	SetFormatterType(fType FormatterType) *Log
+	SetLogFileFormatterType(fType FormatterType) *Log
 	GetLogger() *Log
 	PushContext()
 	PopContext()
@@ -57,20 +70,25 @@ type Log struct {
 	savedContexts *stack.Stack
 
 	// fields
-	cluster         string
-	component       string
-	subComponent    string
-	process         string
-	subProcess      string
-	action          string
-	user            string
-	involvedObj     string
-	disposition     string
-	apiEndpoint     string
-	apiRequest      string
-	apiResponse     string
-	objectAuditType string
-	objectAuditData string
+	cluster          string
+	component        string
+	subComponent     string
+	process          string
+	subProcess       string
+	action           string
+	user             string
+	involvedObj      string
+	disposition      string
+	apiEndpoint      string
+	apiRequest       string
+	apiResponse      string
+	objectAuditType  string
+	objectAuditData  string
+	logFile          string
+	logFileMaxSize   int
+	logFileMaxAge    int
+	logFileMaxBackup int
+	logLevel         logrus.Level
 }
 
 // GetEntry get entry
@@ -107,18 +125,15 @@ func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 }
 
 // SetLevel sets the level at which log messages are published/written.
-func (l *Log) SetLevel(level string) *Log {
-	// If there's no explicit logging level specified, set the level to INFO
-	if level == "" {
-		level = "info"
+func (l *Log) SetLevel(level LevelLog) *Log {
+	loglevel, err := logrus.ParseLevel(string(level))
+	if err != nil {
+		// set default level on error
+		loglevel, _ = logrus.ParseLevel(string(DebugLevel))
 	}
-
-	loglevel, err := logrus.ParseLevel(level)
-	if err == nil {
-		// set default logger and the custom logger levels
-		logrus.SetLevel(loglevel)
-		l.Logger.SetLevel(loglevel)
-	}
+	logrus.SetLevel(loglevel)
+	l.Logger.SetLevel(loglevel)
+	l.logLevel = loglevel
 
 	return l
 }
@@ -429,8 +444,43 @@ func (l *Log) ThreadLogger() *Log {
 	return nlog
 }
 
+func (l *Log) SetFormatterType(fType FormatterType) *Log {
+	if fType == JsonFormatterType {
+		l.logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: RFC3339NanoFixed,
+		})
+	} else if fType == TextFormatterType {
+		l.logger.SetFormatter(&logrus.TextFormatter{
+			ForceColors:      true,
+			FullTimestamp:    true,
+			QuoteEmptyFields: true,
+			TimestampFormat:  RFC3339NanoFixed,
+		})
+	} else {
+		l.logger.SetFormatter(&logrus.TextFormatter{
+			ForceColors:      true,
+			FullTimestamp:    true,
+			QuoteEmptyFields: true,
+			TimestampFormat:  RFC3339NanoFixed,
+		})
+	}
+
+	return l
+}
+
+func (l *Log) SetLogFileFormatterType(fType FormatterType) *Log {
+	if l.logFile != "" {
+		rotateFileHook, err := rotatefilehook.NewRotateFileHook(getRotateConfig(l, fType))
+		if err == nil {
+			l.logger.AddHook(rotateFileHook)
+		}
+	}
+
+	return l
+}
+
 //NewLoggerWithFile log
-func NewLoggerWithFile(filename string) GoLog {
+func NewLoggerWithFile(filename string, maxSize, maxAge, maxBackup int) GoLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -441,30 +491,23 @@ func NewLoggerWithFile(filename string) GoLog {
 		TimestampFormat:  RFC3339NanoFixed,
 	})
 
-	// log file
-	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
-		Filename:   filename,
-		MaxSize:    250,
-		MaxBackups: 3,
-		MaxAge:     30,
-		Level:      logrus.DebugLevel,
-		Formatter: &logrus.JSONFormatter{
-			TimestampFormat: RFC3339NanoFixed,
-		},
-	})
-
-	if err != nil {
-		logrus.Fatalf("Failed to initialize file rotate hook: %v", err)
-	}
-
-	logger.AddHook(rotateFileHook)
-
 	// create the shared context stacks
 	stack1 := stack.New()
 	stack2 := stack.New()
 
-	// create the initial logging context
-	return newLog(logger, stack1, stack2)
+	l := newLog(logger, stack1, stack2)
+	l.logFile = filename
+	l.logFileMaxSize = maxSize
+	l.logFileMaxAge = maxAge
+	l.logFileMaxBackup = maxBackup
+
+	// log file
+	rotateFileHook, err := rotatefilehook.NewRotateFileHook(getRotateConfig(l, TextFormatterType))
+	if err == nil {
+		l.logger.AddHook(rotateFileHook)
+	}
+
+	return l
 }
 
 // NewLogger creates a logger context for a newly created logging output.
@@ -496,4 +539,24 @@ func newLog(logger *logrus.Logger, contextStack *stack.Stack, savedContexts *sta
 
 	nl.clear()
 	return nl
+}
+
+func getRotateConfig(l *Log, fType FormatterType) rotatefilehook.RotateFileConfig {
+	rc := rotatefilehook.RotateFileConfig{
+		Filename:   l.logFile,
+		MaxSize:    l.logFileMaxSize,
+		MaxBackups: l.logFileMaxBackup,
+		MaxAge:     l.logFileMaxAge,
+		Level:      logrus.DebugLevel,
+		Formatter: &logrus.JSONFormatter{
+			TimestampFormat: RFC3339NanoFixed,
+		},
+	}
+
+	if fType == TextFormatterType {
+		rc.Formatter = &logrus.TextFormatter{
+			TimestampFormat: RFC3339NanoFixed,
+		}
+	}
+	return rc
 }
