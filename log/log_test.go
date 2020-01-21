@@ -31,15 +31,13 @@ func logAndAssertJSON(_ *testing.T, log *Log, message string, assertions func(fi
 }
 
 func newLogger() *Log {
-	return newLog(logrus.New(), "test_component", stack.New(), stack.New())
+	return newLog(logrus.New(), stack.New(), stack.New())
 }
 
 func TestGetLogger(t *testing.T) {
 	logger := newLogger()
 	logger.GetLogger()
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -50,8 +48,6 @@ func TestSetDisposition(t *testing.T) {
 	logger := newLogger()
 	logger.SetDisposition(disposition)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, disposition, fields["disposition"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -59,8 +55,6 @@ func TestSetDisposition(t *testing.T) {
 
 	logger.SetDisposition("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["disposition"])
@@ -68,24 +62,20 @@ func TestSetDisposition(t *testing.T) {
 }
 
 func TestSetInvolvedObj(t *testing.T) {
-	involvedObj := "test_involved_object"
+	involvedObj := "test_involvedObject"
 	logger := newLogger()
 	logger.SetInvolvedObj(involvedObj)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, involvedObj, fields["involved_object"])
+		assert.Equal(t, involvedObj, fields["involvedObject"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
 
 	logger.SetInvolvedObj("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["involved_object"])
+		assert.Nil(t, fields["involvedObject"])
 	})
 }
 
@@ -94,8 +84,6 @@ func TestSetUser(t *testing.T) {
 	logger := newLogger()
 	logger.SetUser(user)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, user, fields["user"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -103,8 +91,6 @@ func TestSetUser(t *testing.T) {
 
 	logger.SetUser("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["user"])
@@ -116,8 +102,6 @@ func TestSetAction(t *testing.T) {
 	logger := newLogger()
 	logger.SetAction(action)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, action, fields["action"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -125,8 +109,6 @@ func TestSetAction(t *testing.T) {
 
 	logger.SetAction("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["action"])
@@ -138,8 +120,6 @@ func TestSetProcess(t *testing.T) {
 	logger := newLogger()
 	logger.SetProcess(process)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, process, fields["process"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -147,8 +127,6 @@ func TestSetProcess(t *testing.T) {
 
 	logger.SetProcess("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["process"])
@@ -160,8 +138,6 @@ func TestSetSubProcess(t *testing.T) {
 	logger := newLogger()
 	logger.SetSubProcess(subProcess)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, subProcess, fields["subProcess"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -169,8 +145,6 @@ func TestSetSubProcess(t *testing.T) {
 
 	logger.SetSubProcess("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["subProcess"])
@@ -182,8 +156,6 @@ func TestSetSubComponent(t *testing.T) {
 	logger := newLogger()
 	logger.SetSubComponent(subComponent)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, subComponent, fields["subComponent"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -191,8 +163,6 @@ func TestSetSubComponent(t *testing.T) {
 
 	logger.SetSubComponent("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 		assert.Nil(t, fields["subComponent"])
@@ -208,11 +178,9 @@ func TestSetApi(t *testing.T) {
 	logger.SetAPIRequest(endpoint, request)
 	logger.SetAPIResponse(endpoint, response)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, endpoint, fields["api_endpoint"])
-		assert.Equal(t, request, fields["api_request"])
-		assert.Equal(t, response, fields["api_response"])
+		assert.Equal(t, endpoint, fields["apiEndpoint"])
+		assert.Equal(t, request, fields["apiRequest"])
+		assert.Equal(t, response, fields["apiResponse"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -220,13 +188,11 @@ func TestSetApi(t *testing.T) {
 	logger.SetAPIRequest("", "")
 	logger.SetAPIResponse("", "")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["api_endpoint"])
-		assert.Nil(t, fields["api_request"])
-		assert.Nil(t, fields["api_response"])
+		assert.Nil(t, fields["apiEndpoint"])
+		assert.Nil(t, fields["apiRequest"])
+		assert.Nil(t, fields["apiResponse"])
 	})
 }
 
@@ -251,20 +217,16 @@ func TestSetObjectAudit(t *testing.T) {
 	yamlBytes, _ := yaml.Marshal(p1)
 
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, logconstants.Create, fields["object_audit_type"])
-		assert.Equal(t, string(yamlBytes), fields["object_audit_data"])
+		assert.Equal(t, logconstants.Create, fields["objectAuditType"])
+		assert.Equal(t, string(yamlBytes), fields["objectAuditData"])
 	})
 
 	logger.SetObjectAudit(p1, p1v2)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, logconstants.Update, fields["object_audit_type"])
-		assert.Equal(t, "([Quota Storage], update, 10Gi, 11Gi)\n", fields["object_audit_data"])
+		assert.Equal(t, logconstants.Update, fields["objectAuditType"])
+		assert.Equal(t, "([Quota Storage], update, 10Gi, 11Gi)\n", fields["objectAuditData"])
 	})
 }
 
@@ -273,8 +235,6 @@ func TestSetLevel(t *testing.T) {
 	logger := newLogger()
 	logger.SetLevel(level)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
@@ -284,8 +244,6 @@ func TestSetLevel(t *testing.T) {
 	level = "panic"
 	logger.SetLevel(level)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, nil, fields["cluster"])
-		assert.Equal(t, nil, fields["component"])
 		assert.Equal(t, nil, fields["msg"])
 		assert.Equal(t, nil, fields["level"])
 	})
@@ -296,16 +254,14 @@ func assertAllFields(t *testing.T, log *Log, prefix string) {
 	request := prefix + "test_request"
 	response := prefix + "test_response"
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test_cluster", fields["cluster"])
-		assert.Equal(t, "test_component", fields["component"])
-		assert.Equal(t, endpoint, fields["api_endpoint"])
-		assert.Equal(t, request, fields["api_request"])
-		assert.Equal(t, response, fields["api_response"])
+		assert.Equal(t, endpoint, fields["apiEndpoint"])
+		assert.Equal(t, request, fields["apiRequest"])
+		assert.Equal(t, response, fields["apiResponse"])
 		assert.Equal(t, prefix+"testAllFields", fields["process"])
 		assert.Equal(t, prefix+"SUCCESS", fields["disposition"])
 		assert.Equal(t, prefix+"Test", fields["action"])
 		assert.Equal(t, prefix+"allFields", fields["subComponent"])
-		assert.Equal(t, prefix+"unit-test", fields["involved_object"])
+		assert.Equal(t, prefix+"unit-test", fields["involvedObject"])
 		assert.Equal(t, prefix+"testuser", fields["user"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -370,21 +326,21 @@ func TestLogStack(t *testing.T) {
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "TestLogStack", fields["process"])
 		assert.Equal(t, "BeforePush", fields["action"])
-		assert.Equal(t, "testobject", fields["involved_object"])
+		assert.Equal(t, "testobject", fields["involvedObject"])
 	})
 
 	log.SetAction("AfterPush")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "TestLogStack", fields["process"])
 		assert.Equal(t, "AfterPush", fields["action"])
-		assert.Equal(t, "testobject", fields["involved_object"])
+		assert.Equal(t, "testobject", fields["involvedObject"])
 	})
 
 	log.PopContext()
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "TestLogStack", fields["process"])
 		assert.Equal(t, "BeforePush", fields["action"])
-		assert.Nil(t, fields["involved_object"]) // pop should clear the nested set
+		assert.Nil(t, fields["involvedObject"]) // pop should clear the nested set
 	})
 }
 
@@ -613,7 +569,7 @@ func TestNewLoggerWithFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewLoggerWithFile(tt.args.component, tt.args.filename)
+			got := NewLoggerWithFile(tt.args.filename)
 			if got == nil {
 				t.Errorf("NewLoggerWithFile() = %v, want customlog", got)
 				return
@@ -638,7 +594,7 @@ func TestNewLogger(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewLogger(tt.args.component)
+			got := NewLogger()
 			if got == nil {
 				t.Errorf("NewLogger() = %v, want customlog", got)
 				return

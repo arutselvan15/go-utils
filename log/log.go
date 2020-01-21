@@ -2,8 +2,6 @@ package log
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/golang-collections/collections/stack"
 	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
@@ -23,6 +21,8 @@ type GoLog interface {
 	logrus.FieldLogger
 	GetEntry() *logrus.Entry
 	SetLevel(string) *Log
+	SetCluster(string) *Log
+	SetComponent(string) *Log
 	SetSubComponent(string) *Log
 	SetProcess(process string) *Log
 	SetSubProcess(subProcess string) *Log
@@ -57,6 +57,7 @@ type Log struct {
 	savedContexts *stack.Stack
 
 	// fields
+	cluster         string
 	component       string
 	subComponent    string
 	process         string
@@ -82,15 +83,15 @@ func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 	if len(objects) == 1 {
 		// create
 		l.objectAuditType = logconstants.Create
-		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
+		l.Entry = l.WithField("objectAuditType", l.objectAuditType)
 		yamlBytes, _ := yaml.Marshal(objects[0])
 		l.objectAuditData = string(yamlBytes)
-		l.Entry = l.WithField("object_audit_data", l.objectAuditData)
+		l.Entry = l.WithField("objectAuditData", l.objectAuditData)
 
 	} else if len(objects) == 2 {
 		// update and look at first 2
 		l.objectAuditType = logconstants.Update
-		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
+		l.Entry = l.WithField("objectAuditType", l.objectAuditType)
 		ch, _ := diff.GetDiffChangelog(objects[0], objects[1])
 		data := ""
 		if ch != nil {
@@ -98,7 +99,7 @@ func (l *Log) SetObjectAudit(objects ...interface{}) *Log {
 				data = data + fmt.Sprintf("(%v, %v, %v, %v)\n", c.Path, c.Type, c.From, c.To)
 			}
 			l.objectAuditData = data
-			l.Entry = l.WithField("object_audit_data", l.objectAuditData)
+			l.Entry = l.WithField("objectAuditData", l.objectAuditData)
 		}
 	}
 
@@ -126,19 +127,19 @@ func (l *Log) SetLevel(level string) *Log {
 func (l *Log) SetAPIRequest(endpoint, request string) *Log {
 
 	if endpoint == "" {
-		delete(l.Data, "api_endpoint")
+		delete(l.Data, "apiEndpoint")
 		l.apiEndpoint = ""
 	} else {
 		l.apiEndpoint = endpoint
-		l.Entry = l.WithField("api_endpoint", l.apiEndpoint)
+		l.Entry = l.WithField("apiEndpoint", l.apiEndpoint)
 	}
 
 	if request == "" {
-		delete(l.Data, "api_request")
+		delete(l.Data, "apiRequest")
 		l.apiRequest = ""
 	} else {
 		l.apiRequest = request
-		l.Entry = l.WithField("api_request", l.apiRequest)
+		l.Entry = l.WithField("apiRequest", l.apiRequest)
 	}
 
 	return l
@@ -148,25 +149,51 @@ func (l *Log) SetAPIRequest(endpoint, request string) *Log {
 func (l *Log) SetAPIResponse(endpoint, response string) *Log {
 
 	if endpoint == "" {
-		delete(l.Data, "api_endpoint")
+		delete(l.Data, "apiEndpoint")
 		l.apiEndpoint = ""
 	} else {
 		l.apiEndpoint = endpoint
-		l.Entry = l.WithField("api_endpoint", l.apiEndpoint)
+		l.Entry = l.WithField("apiEndpoint", l.apiEndpoint)
 	}
 
 	if response == "" {
-		delete(l.Data, "api_response")
+		delete(l.Data, "apiResponse")
 		l.apiResponse = ""
 	} else {
 		l.apiResponse = response
-		l.Entry = l.WithField("api_response", l.apiResponse)
+		l.Entry = l.WithField("apiResponse", l.apiResponse)
 	}
 
 	return l
 }
 
-// SetSubComponent adds the sub component (ping, am, cert, etc.) field to to each Log message if provided
+// SetCluster adds cluster name
+func (l *Log) SetCluster(cluster string) *Log {
+	if cluster == "" {
+		delete(l.Data, "cluster")
+		l.cluster = ""
+	} else {
+		l.cluster = cluster
+		l.Entry = l.WithField("cluster", l.cluster)
+	}
+
+	return l
+}
+
+// SetComponent adds the component field to each Log message if provided
+func (l *Log) SetComponent(c string) *Log {
+	if c == "" {
+		delete(l.Data, "component")
+		l.component = ""
+	} else {
+		l.component = c
+		l.Entry = l.WithField("component", l.component)
+	}
+
+	return l
+}
+
+// SetSubComponent adds the sub component field to each Log message if provided
 func (l *Log) SetSubComponent(sc string) *Log {
 	if sc == "" {
 		delete(l.Data, "subComponent")
@@ -234,11 +261,11 @@ func (l *Log) SetUser(user string) *Log {
 // SetInvolvedObj adds the involved object (route name, project name, etc.) field to each log message if provided
 func (l *Log) SetInvolvedObj(involvedObj string) *Log {
 	if involvedObj == "" {
-		delete(l.Data, "involved_object")
+		delete(l.Data, "involvedObject")
 		l.involvedObj = ""
 	} else {
 		l.involvedObj = involvedObj
-		l.Entry = l.WithField("involved_object", l.involvedObj)
+		l.Entry = l.WithField("involvedObject", l.involvedObj)
 	}
 
 	return l
@@ -329,12 +356,10 @@ func (l *Log) PushPop(f func()) {
 
 // Doesn't copy the stack, just the fields
 func (l *Log) copyContextFrom(from *Log) *Log {
-	l.component = from.component
 	l.logger = from.logger
-	l.Entry = from.logger.WithFields(logrus.Fields{
-		"cluster":   os.Getenv("CLUSTER"),
-		"component": from.component,
-	})
+	l.Entry = from.logger.WithFields(logrus.Fields{})
+	l.SetComponent(from.component)
+	l.SetCluster(from.cluster)
 	l.SetSubComponent(from.subComponent)
 	l.SetProcess(from.process)
 	l.SetSubProcess(from.subProcess)
@@ -352,21 +377,20 @@ func (l *Log) copyContextFrom(from *Log) *Log {
 func (l *Log) setObjectAudit(auditType string, data string) {
 	if auditType != "" {
 		l.objectAuditType = auditType
-		l.Entry = l.WithField("object_audit_type", l.objectAuditType)
+		l.Entry = l.WithField("objectAuditType", l.objectAuditType)
 	}
 
 	if data != "" {
 		l.objectAuditData = data
-		l.Entry = l.WithField("object_audit_data", l.objectAuditData)
+		l.Entry = l.WithField("objectAuditData", l.objectAuditData)
 	}
 }
 
 func (l *Log) clear() {
-	l.Entry = l.logger.WithFields(logrus.Fields{
-		"cluster":   os.Getenv("CLUSTER"),
-		"component": l.component,
-	})
+	l.Entry = l.logger.WithFields(logrus.Fields{})
 
+	l.cluster = ""
+	l.component = ""
 	l.subComponent = ""
 	l.process = ""
 	l.subProcess = ""
@@ -386,7 +410,7 @@ func (l *Log) clear() {
 // in parallel.
 // GetLogger GetLogger
 func (l *Log) GetLogger() *Log {
-	nl := newLog(l.logger, l.component, l.contextStack, l.savedContexts)
+	nl := newLog(l.logger, l.contextStack, l.savedContexts)
 	return nl
 }
 
@@ -399,14 +423,14 @@ func (l *Log) ThreadLogger() *Log {
 	stack2 := stack.New()
 
 	// create the initial logging context
-	nlog := newLog(l.logger, l.component, stack1, stack2)
+	nlog := newLog(l.logger, stack1, stack2)
 	// populate with existing context
 	nlog.copyContextFrom(l)
 	return nlog
 }
 
 //NewLoggerWithFile log
-func NewLoggerWithFile(component string, filename string) GoLog {
+func NewLoggerWithFile(filename string) GoLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -440,13 +464,11 @@ func NewLoggerWithFile(component string, filename string) GoLog {
 	stack2 := stack.New()
 
 	// create the initial logging context
-	nlog := newLog(logger, component, stack1, stack2)
-
-	return nlog
+	return newLog(logger, stack1, stack2)
 }
 
 // NewLogger creates a logger context for a newly created logging output.
-func NewLogger(component string) GoLog {
+func NewLogger() GoLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -462,13 +484,11 @@ func NewLogger(component string) GoLog {
 	stack2 := stack.New()
 
 	// create the initial logging context
-	nlog := newLog(logger, component, stack1, stack2)
-	return nlog
+	return newLog(logger, stack1, stack2)
 }
 
-func newLog(logger *logrus.Logger, component string, contextStack *stack.Stack, savedContexts *stack.Stack) *Log {
+func newLog(logger *logrus.Logger, contextStack *stack.Stack, savedContexts *stack.Stack) *Log {
 	nl := &Log{
-		component:     component,
 		logger:        logger,
 		contextStack:  contextStack,
 		savedContexts: savedContexts,

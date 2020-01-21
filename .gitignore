@@ -19,3 +19,4 @@ bin/
 # unit test coverage report files
 coverage.out
 report.json
+version.txt
