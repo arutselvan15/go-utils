@@ -231,9 +231,8 @@ func TestSetObjectAudit(t *testing.T) {
 }
 
 func TestSetLevel(t *testing.T) {
-	level := ""
 	logger := newLogger()
-	logger.SetLevel(level)
+	logger.SetLevel(InfoLevel)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
@@ -241,8 +240,7 @@ func TestSetLevel(t *testing.T) {
 
 	// Log event is of type info will not be processed because Log level should be
 	// panic and above
-	level = "panic"
-	logger.SetLevel(level)
+	logger.SetLevel(PanicLevel)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, nil, fields["msg"])
 		assert.Equal(t, nil, fields["level"])
@@ -569,7 +567,7 @@ func TestNewLoggerWithFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewLoggerWithFile(tt.args.filename)
+			got := NewLoggerWithFile(tt.args.filename, 1, 1, 1)
 			if got == nil {
 				t.Errorf("NewLoggerWithFile() = %v, want customlog", got)
 				return
