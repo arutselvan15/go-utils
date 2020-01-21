@@ -27,8 +27,8 @@ var (
 	PanicLevel        LevelLog      = "panic"
 )
 
-//GoLog log
-type GoLog interface {
+//CustomLog log
+type CustomLog interface {
 	logrus.FieldLogger
 	GetEntry() *logrus.Entry
 	SetLevel(LevelLog) *Log
@@ -480,7 +480,7 @@ func (l *Log) SetLogFileFormatterType(fType FormatterType) *Log {
 }
 
 //NewLoggerWithFile log
-func NewLoggerWithFile(filename string, maxSize, maxAge, maxBackup int) GoLog {
+func NewLoggerWithFile(filename string, maxSize, maxAge, maxBackup int) CustomLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
@@ -511,7 +511,7 @@ func NewLoggerWithFile(filename string, maxSize, maxAge, maxBackup int) GoLog {
 }
 
 // NewLogger creates a logger context for a newly created logging output.
-func NewLogger() GoLog {
+func NewLogger() CustomLog {
 	logger := logrus.New()
 
 	logrus.SetOutput(colorable.NewColorableStdout())
