@@ -38,6 +38,7 @@ type CustomLog interface {
 	SetProcess(process string) *Log
 	SetSubProcess(subProcess string) *Log
 	SetAction(action string) *Log
+	SetState(state string) *Log
 	SetUser(user string) *Log
 	SetInvolvedObj(involvedObj string) *Log
 	SetDisposition(disposition string) *Log
@@ -76,6 +77,7 @@ type Log struct {
 	process          string
 	subProcess       string
 	action           string
+	state            string
 	user             string
 	involvedObj      string
 	disposition      string
@@ -260,6 +262,19 @@ func (l *Log) SetAction(action string) *Log {
 	return l
 }
 
+// SetState adds the state into the log (configureProjectAdmin, configureRBAC and etc.)
+func (l *Log) SetState(state string) *Log {
+	if state == "" {
+		delete(l.Data, "state")
+		l.state = ""
+	} else {
+		l.state = state
+		l.Entry = l.WithField("state", l.state)
+	}
+
+	return l
+}
+
 // SetUser adds the user field to each log message if provided
 func (l *Log) SetUser(user string) *Log {
 	if user == "" {
@@ -379,6 +394,7 @@ func (l *Log) copyContextFrom(from *Log) *Log {
 	l.SetProcess(from.process)
 	l.SetSubProcess(from.subProcess)
 	l.SetAction(from.action)
+	l.SetState(from.state)
 	l.SetUser(from.user)
 	l.SetInvolvedObj(from.involvedObj)
 	l.SetDisposition(from.disposition)
@@ -410,6 +426,7 @@ func (l *Log) clear() {
 	l.process = ""
 	l.subProcess = ""
 	l.action = ""
+	l.state = ""
 	l.user = ""
 	l.involvedObj = ""
 	l.disposition = ""
