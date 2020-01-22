@@ -542,7 +542,7 @@ func TestAllLogConstants(t *testing.T) {
 		logconstants.OnAdd, logconstants.OnUpdate, logconstants.OnDelete,
 		logconstants.Create, logconstants.Update, logconstants.Delete,
 		logconstants.Mutate, logconstants.InProgress, logconstants.Read,
-		logconstants.Audit, logconstants.Validate, logconstants.Retry,
+		logconstants.Audit, logconstants.Validate, logconstants.Retry, logconstants.Pending,
 		logconstants.Start, logconstants.End, logconstants.Success, logconstants.Failure,
 	}
 

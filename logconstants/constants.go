@@ -32,6 +32,8 @@ const (
 
 	// general state of requests
 
+	// Pending Pending
+	Pending = "Pending"
 	// Start Start
 	Start = "Start"
 	// InProgress InProgress
