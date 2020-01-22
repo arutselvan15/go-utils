@@ -49,4 +49,6 @@ const (
 	Success = "Success"
 	// Failure Failure
 	Failure = "Failure"
+	//Skip skip
+	Skip = "Skip"
 )

@@ -541,7 +541,7 @@ func TestAllLogConstants(t *testing.T) {
 	actions := []string{
 		logconstants.OnAdd, logconstants.OnUpdate, logconstants.OnDelete,
 		logconstants.Create, logconstants.Update, logconstants.Delete,
-		logconstants.Mutate, logconstants.InProgress, logconstants.Read,
+		logconstants.Mutate, logconstants.InProgress, logconstants.Read, logconstants.Skip,
 		logconstants.Audit, logconstants.Validate, logconstants.Retry, logconstants.Pending,
 		logconstants.Start, logconstants.End, logconstants.Success, logconstants.Failure,
 	}
