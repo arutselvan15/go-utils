@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/arutselvan15/go-utils/logconstants"
 
 	"github.com/arutselvan15/go-utils/log"
+	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 func main() {

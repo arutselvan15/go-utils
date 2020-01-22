@@ -6,11 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/arutselvan15/go-utils/logconstants"
 	"github.com/golang-collections/collections/stack"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+
+	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 func init() {
