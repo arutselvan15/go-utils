@@ -1,15 +1,15 @@
 GO=GO111MODULE=on go
 GO_CROSS_CMPL=GOOS=linux GOARCH=amd64 ${GO}
 
-BINARY=bin/go-utils
+NAME=go-utils
+BINARY=bin/${NAME}
 MAIN_GO=cmd/main.go
 
-BUILD=$(or ${BUILD_NUMBER},0)
-VERSION=v1.0.${BUILD}
+BUILD=$(or ${BUILD_NUMBER},unknown)
+VPREFIX=$(or ${VERSION_PERFIX}, v)
+VERSION=${VPREFIX}.${BUILD}
 DATE=$(shell date)
 HOSTNAME=$(shell hostname)
-
-DOCKER_HUB=arutselvan15
 
 all: clean deps fmt check test
 
@@ -28,11 +28,13 @@ fmt:
 
 check: fmt
 	@echo "==> Code Check..."
-	${GOLINT} run --fast --tests
+	golangci-lint run --fast --tests
 
-build: test gen-version
-	@echo "==> Build Local..."
-	CGO_ENABLED=0 ${GO} build -o ${BINARY} ${MAIN_GO}
+test: clean fmt
+	@echo "==> Testing..."
+	CGO_ENABLED=0 ${GO} test -v -covermode=atomic -count=1 ./... -coverprofile coverage.out
+	CGO_ENABLED=1 ${GO} test -race -covermode=atomic -count=1 ./... -json > report.json
+	${GO} tool cover -func=coverage.out
 
 gen-version:
 	@echo "==> Generating Version..."
@@ -41,8 +43,9 @@ gen-version:
 	echo "Host=${HOSTNAME}" >> version.txt
 	cat version.txt
 
-test: clean
-	@echo "==> Testing..."
-	CGO_ENABLED=0 ${GO} test -v -covermode=atomic -count=1 ./... -coverprofile coverage.out
-	CGO_ENABLED=1 ${GO} test -race -covermode=atomic -count=1 ./... -json > report.json
-	${GO} tool cover -func=coverage.out
+build: test gen-version
+	@echo "==> Build Local..."
+	CGO_ENABLED=0 ${GO} build -o ${BINARY} ${MAIN_GO}
+
+container: build
+	docker build -t ${NAME} .

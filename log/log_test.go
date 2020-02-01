@@ -6,12 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/arutselvan15/go-utils/logconstants"
 	"github.com/golang-collections/collections/stack"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
-
-	"github.com/arutselvan15/go-utils/logconstants"
 )
 
 func init() {
@@ -19,8 +17,10 @@ func init() {
 }
 
 func logAndAssertJSON(_ *testing.T, log *Log, message string, assertions func(fields logrus.Fields)) {
-	var buffer bytes.Buffer
-	var fields logrus.Fields
+	var (
+		buffer bytes.Buffer
+		fields logrus.Fields
+	)
 
 	log.Entry.Logger.Out = &buffer
 	log.Entry.Logger.Formatter = new(logrus.JSONFormatter)
@@ -44,39 +44,21 @@ func TestGetLogger(t *testing.T) {
 	})
 }
 
-func TestSetDisposition(t *testing.T) {
-	disposition := "test_disposition"
-	logger := newLogger()
-	logger.SetDisposition(disposition)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, disposition, fields["disposition"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
-
-	logger.SetDisposition("")
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["disposition"])
-	})
-}
-
-func TestSetInvolvedObj(t *testing.T) {
+func TestSetObjectName(t *testing.T) {
 	involvedObj := "test_involvedObject"
 	logger := newLogger()
-	logger.SetInvolvedObj(involvedObj)
+	logger.SetObjectName(involvedObj)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, involvedObj, fields["involvedObject"])
+		assert.Equal(t, involvedObj, fields["objectName"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
 
-	logger.SetInvolvedObj("")
+	logger.SetObjectName("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["involvedObject"])
+		assert.Nil(t, fields["objectName"])
 	})
 }
 
@@ -98,136 +80,21 @@ func TestSetUser(t *testing.T) {
 	})
 }
 
-func TestSetAction(t *testing.T) {
-	action := "test_action"
+func TestSetOperation(t *testing.T) {
+	action := "operation"
 	logger := newLogger()
-	logger.SetAction(action)
+	logger.SetOperation(action)
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, action, fields["action"])
+		assert.Equal(t, action, fields["operation"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
 
-	logger.SetAction("")
+	logger.SetOperation("")
 	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["action"])
-	})
-}
-
-func TestSetProcess(t *testing.T) {
-	process := "test_process"
-	logger := newLogger()
-	logger.SetProcess(process)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, process, fields["process"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
-
-	logger.SetProcess("")
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["process"])
-	})
-}
-
-func TestSetSubProcess(t *testing.T) {
-	subProcess := "test_subprocess"
-	logger := newLogger()
-	logger.SetSubProcess(subProcess)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, subProcess, fields["subProcess"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
-
-	logger.SetSubProcess("")
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["subProcess"])
-	})
-}
-
-func TestSetSubComponent(t *testing.T) {
-	subComponent := "test_sub_component"
-	logger := newLogger()
-	logger.SetSubComponent(subComponent)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, subComponent, fields["subComponent"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
-
-	logger.SetSubComponent("")
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["subComponent"])
-	})
-}
-
-func TestSetApi(t *testing.T) {
-	endpoint := "test_endpoint"
-	request := "test_request"
-	response := "test_response"
-	logger := newLogger()
-
-	logger.SetAPIRequest(endpoint, request)
-	logger.SetAPIResponse(endpoint, response)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, endpoint, fields["apiEndpoint"])
-		assert.Equal(t, request, fields["apiRequest"])
-		assert.Equal(t, response, fields["apiResponse"])
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-	})
-
-	logger.SetAPIRequest("", "")
-	logger.SetAPIResponse("", "")
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, "info", fields["level"])
-		assert.Nil(t, fields["apiEndpoint"])
-		assert.Nil(t, fields["apiRequest"])
-		assert.Nil(t, fields["apiResponse"])
-	})
-}
-
-func TestSetObjectAudit(t *testing.T) {
-	type Quota struct {
-		RAM     string
-		Storage string
-	}
-
-	type ProjectSpec struct {
-		Name          string
-		Production    bool
-		ProjectAdmins []string
-		Quota         Quota
-	}
-
-	p1 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{RAM: "1Gi", Storage: "10Gi"}}
-	p1v2 := &ProjectSpec{Name: "test-p1", Production: true, ProjectAdmins: []string{"kemathew"}, Quota: Quota{RAM: "1Gi", Storage: "11Gi"}}
-
-	logger := newLogger()
-	logger.SetObjectAudit(p1)
-	yamlBytes, _ := yaml.Marshal(p1)
-
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, logconstants.Create, fields["objectAuditType"])
-		assert.Equal(t, string(yamlBytes), fields["objectAuditData"])
-	})
-
-	logger.SetObjectAudit(p1, p1v2)
-	logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["msg"])
-		assert.Equal(t, logconstants.Update, fields["objectAuditType"])
-		assert.Equal(t, "([Quota Storage], update, 10Gi, 11Gi)\n", fields["objectAuditData"])
+		assert.Nil(t, fields["operation"])
 	})
 }
 
@@ -248,38 +115,59 @@ func TestSetLevel(t *testing.T) {
 	})
 }
 
+func TestAudits(t *testing.T) {
+	logger := newLogger()
+	logger.LogAuditEvent("")
+	logger.LogAuditObject([]string{})
+	logger.LogAuditObject([]string{}, []string{})
+	logger.LogAuditAPI("GET", "/", "", "", 0)
+}
+
+func TestFormatters(t *testing.T) {
+	logger := newLogger()
+	flogger := NewLoggerWithFile("", 1, 1, 1)
+
+	logger.SetFormatterType(TextFormatterType)
+	logger.SetFormatterType(JSONFormatterType)
+
+	flogger.SetLogFileFormatterType(TextFormatterType)
+	flogger.SetLogFileFormatterType(JSONFormatterType)
+}
+
+func TestPushPop(t *testing.T) {
+	logger := newLogger()
+	logger.PushPop(func() {})
+}
+
 func assertAllFields(t *testing.T, log *Log, prefix string) {
-	endpoint := prefix + "test_endpoint"
-	request := prefix + "test_request"
-	response := prefix + "test_response"
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, endpoint, fields["apiEndpoint"])
-		assert.Equal(t, request, fields["apiRequest"])
-		assert.Equal(t, response, fields["apiResponse"])
-		assert.Equal(t, prefix+"testAllFields", fields["process"])
-		assert.Equal(t, prefix+"SUCCESS", fields["disposition"])
-		assert.Equal(t, prefix+"Test", fields["action"])
-		assert.Equal(t, prefix+"allFields", fields["subComponent"])
-		assert.Equal(t, prefix+"unit-test", fields["involvedObject"])
-		assert.Equal(t, prefix+"testuser", fields["user"])
+		assert.Equal(t, prefix+"cluster", fields["cluster"])
+		assert.Equal(t, prefix+"app", fields["app"])
+		assert.Equal(t, prefix+"resource", fields["resource"])
+		assert.Equal(t, prefix+"component", fields["component"])
+		assert.Equal(t, prefix+"operation", fields["operation"])
+		assert.Equal(t, prefix+"objectname", fields["objectName"])
+		assert.Equal(t, prefix+"objectstate", fields["objectState"])
+		assert.Equal(t, prefix+"user", fields["user"])
+		assert.Equal(t, prefix+"step", fields["step"])
+		assert.Equal(t, prefix+"stepstate", fields["stepState"])
 		assert.Equal(t, "test", fields["msg"])
 		assert.Equal(t, "info", fields["level"])
 	})
 }
 
 func setAllFields(log *Log, prefix string) {
-	endpoint := prefix + "test_endpoint"
-	request := prefix + "test_request"
-	response := prefix + "test_response"
-	log.SetAPIRequest(endpoint, request)
-	log.SetAPIResponse(endpoint, response)
-	log.SetProcess(prefix + "testAllFields")
-	log.SetDisposition(prefix + "SUCCESS")
-	log.SetAction(prefix + "Test")
-	log.SetSubComponent(prefix + "allFields")
-	log.SetInvolvedObj(prefix + "unit-test")
+	log.SetCluster(prefix + "cluster")
+	log.SetApplication(prefix + "app")
+	log.SetResource(prefix + "resource")
+	log.SetComponent(prefix + "component")
+	log.SetOperation(prefix + "operation")
+	log.SetObjectName(prefix + "objectname")
+	log.SetObjectState(prefix + "objectstate")
+	log.SetUser(prefix + "user")
+	log.SetStep(prefix + "step")
+	log.SetStepState(prefix + "stepstate")
 	log.SetLevel("info")
-	log.SetUser(prefix + "testuser")
 }
 
 func TestAllFields(t *testing.T) {
@@ -293,75 +181,73 @@ func TestMultiLog(t *testing.T) {
 	log2 := log1.GetLogger()
 	assert.Equal(t, log1, log2, "Initial logs should be equal")
 
-	log2.SetAction("test")
+	log2.SetOperation("test")
 	assert.NotEqual(t, log1, log2, "Changed logs should not be equal")
 
 	logAndAssertJSON(t, log1, "test", func(fields logrus.Fields) {
-		assert.Equal(t, nil, fields["action"])
+		assert.Equal(t, nil, fields["operation"])
 	})
 	logAndAssertJSON(t, log2, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["action"])
+		assert.Equal(t, "test", fields["operation"])
 	})
-	log1.SetAction("hahaha")
+	log1.SetOperation("hahaha")
 	logAndAssertJSON(t, log1, "blahblah", func(fields logrus.Fields) {
-		assert.Equal(t, "hahaha", fields["action"])
+		assert.Equal(t, "hahaha", fields["operation"])
 	})
 	logAndAssertJSON(t, log2, "yeet", func(fields logrus.Fields) {
-		assert.Equal(t, "test", fields["action"])
+		assert.Equal(t, "test", fields["operation"])
 	})
 }
 
 func TestLogStack(t *testing.T) {
 	log := newLogger()
 
-	log.SetProcess("TestLogStack").SetAction("BeforePush")
+	log.SetComponent("TestLogStack").SetOperation("BeforePush")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestLogStack", fields["process"])
-		assert.Equal(t, "BeforePush", fields["action"])
+		assert.Equal(t, "TestLogStack", fields["component"])
+		assert.Equal(t, "BeforePush", fields["operation"])
 	})
 
 	log.PushContext()
-	log.SetInvolvedObj("testobject")
+	log.SetObjectName("testobject")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestLogStack", fields["process"])
-		assert.Equal(t, "BeforePush", fields["action"])
-		assert.Equal(t, "testobject", fields["involvedObject"])
+		assert.Equal(t, "TestLogStack", fields["component"])
+		assert.Equal(t, "BeforePush", fields["operation"])
+		assert.Equal(t, "testobject", fields["objectName"])
 	})
 
-	log.SetAction("AfterPush")
+	log.SetOperation("AfterPush")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestLogStack", fields["process"])
-		assert.Equal(t, "AfterPush", fields["action"])
-		assert.Equal(t, "testobject", fields["involvedObject"])
+		assert.Equal(t, "TestLogStack", fields["component"])
+		assert.Equal(t, "AfterPush", fields["operation"])
+		assert.Equal(t, "testobject", fields["objectName"])
 	})
 
 	log.PopContext()
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestLogStack", fields["process"])
-		assert.Equal(t, "BeforePush", fields["action"])
-		assert.Nil(t, fields["involvedObject"]) // pop should clear the nested set
+		assert.Equal(t, "TestLogStack", fields["component"])
+		assert.Equal(t, "BeforePush", fields["operation"])
+		assert.Nil(t, fields["objectName"]) // pop should clear the nested set
 	})
 }
 
 func saveRestore(log *Log, t *testing.T) {
-	// Initial context
-	log.SetProcess("TestSaveRestore").SetAction("BeforeSave")
+	log.SetComponent("TestSaveRestore").SetOperation("BeforeSave")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSave", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSave", fields["operation"])
 	})
 
 	log.PushContext()
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSave", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSave", fields["operation"])
 	})
 
-	// This will be the saved context
-	log.SetAction("BeforeSaveAfterPush")
+	log.SetOperation("BeforeSaveAfterPush")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSaveAfterPush", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSaveAfterPush", fields["operation"])
 	})
 
 	log.SaveContext()
@@ -371,13 +257,13 @@ func saveRestore(log *Log, t *testing.T) {
 
 	// Context should still be there
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSaveAfterPush", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSaveAfterPush", fields["operation"])
 	})
-	log.SetAction("AfterSave")
+	log.SetOperation("AfterSave")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "AfterSave", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "AfterSave", fields["operation"])
 	})
 
 	// Pushing within new context stack
@@ -385,25 +271,25 @@ func saveRestore(log *Log, t *testing.T) {
 	log.PushContext()
 	assert.Equal(t, log.contextStack.Len(), 2)
 
-	log.SetAction("AfterSaveAfterPush")
+	log.SetOperation("AfterSaveAfterPush")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "AfterSaveAfterPush", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "AfterSaveAfterPush", fields["operation"])
 	})
 
 	// Now restore the context - new stack should be replaced by old one
 	log.RestoreContext()
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSaveAfterPush", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSaveAfterPush", fields["operation"])
 	})
 	assert.Equal(t, log.contextStack.Len(), 1)
 
 	// Back to initial
 	log.PopContext()
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestSaveRestore", fields["process"])
-		assert.Equal(t, "BeforeSave", fields["action"])
+		assert.Equal(t, "TestSaveRestore", fields["component"])
+		assert.Equal(t, "BeforeSave", fields["operation"])
 	})
 }
 
@@ -458,10 +344,10 @@ func TestThreadedContexts(t *testing.T) {
 func TestNestedSaveRestore(t *testing.T) {
 	log := newLogger()
 
-	log.SetProcess("TestNestedSaveRestore").SetAction("Initial")
+	log.SetComponent("TestNestedSaveRestore").SetOperation("Initial")
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestNestedSaveRestore", fields["process"])
-		assert.Equal(t, "Initial", fields["action"])
+		assert.Equal(t, "TestNestedSaveRestore", fields["component"])
+		assert.Equal(t, "Initial", fields["operation"])
 	})
 
 	log.PushContext()
@@ -487,8 +373,8 @@ func TestNestedSaveRestore(t *testing.T) {
 	assert.Equal(t, log.savedContexts.Len(), 0)
 
 	logAndAssertJSON(t, log, "test", func(fields logrus.Fields) {
-		assert.Equal(t, "TestNestedSaveRestore", fields["process"])
-		assert.Equal(t, "Initial", fields["action"])
+		assert.Equal(t, "TestNestedSaveRestore", fields["component"])
+		assert.Equal(t, "Initial", fields["operation"])
 	})
 }
 
@@ -539,16 +425,15 @@ func TestAllLogConstants(t *testing.T) {
 	logger := newLogger()
 
 	actions := []string{
-		logconstants.OnAdd, logconstants.OnUpdate, logconstants.OnDelete,
-		logconstants.Create, logconstants.Update, logconstants.Delete,
-		logconstants.Mutate, logconstants.InProgress, logconstants.Read, logconstants.Skip,
-		logconstants.Audit, logconstants.Validate, logconstants.Retry, logconstants.Pending,
-		logconstants.Start, logconstants.End, logconstants.Success, logconstants.Failure,
+		logconstants.Create, logconstants.Update, logconstants.Delete, logconstants.Read,
+		logconstants.Mutate, logconstants.Audit, logconstants.Validate,
+		logconstants.Pending, logconstants.InProgress, logconstants.Error, logconstants.Retry, logconstants.Unknown, logconstants.Deleting,
+		logconstants.Successful, logconstants.Failed, logconstants.Processing,
 	}
 
 	for _, action := range actions {
-		logger.SetAction(action)
-		logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) { assert.Equal(t, action, fields["action"]) })
+		logger.SetOperation(action)
+		logAndAssertJSON(t, logger, "test", func(fields logrus.Fields) { assert.Equal(t, action, fields["operation"]) })
 	}
 }
 
@@ -557,6 +442,7 @@ func TestNewLoggerWithFile(t *testing.T) {
 		component string
 		filename  string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -566,6 +452,7 @@ func TestNewLoggerWithFile(t *testing.T) {
 			args: args{component: "test_component", filename: "/tmp/test.log"},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewLoggerWithFile(tt.args.filename, 1, 1, 1)
@@ -582,6 +469,7 @@ func TestNewLogger(t *testing.T) {
 	type args struct {
 		component string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -591,6 +479,7 @@ func TestNewLogger(t *testing.T) {
 			args: args{component: "test_component"},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewLogger()

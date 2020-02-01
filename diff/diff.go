@@ -1,3 +1,4 @@
+// Package diff lib
 package diff
 
 import (
@@ -13,6 +14,7 @@ func GetDiffChangelog(oldObj, newObj interface{}) (*r3.Changelog, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return &changelog, nil
 	}
 

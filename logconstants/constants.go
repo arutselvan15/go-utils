@@ -1,54 +1,52 @@
+// Package logconstants lib
 package logconstants
 
 const (
-	// events
-
-	// OnAdd OnAdd
-	OnAdd = "OnAdd"
-	// OnUpdate OnUpdate
-	OnUpdate = "OnUpdate"
-	// OnDelete OnDelete
-	OnDelete = "OnDelete"
-
-	// actions
+	// operation
 
 	// Create Create
-	Create = "Create"
+	Create = "create"
 	// Update Update
-	Update = "Update"
+	Update = "update"
 	// Read Read
-	Read = "Read"
+	Read = "read"
 	// Delete Delete
-	Delete = "Delete"
+	Delete = "delete"
 
-	// subcomponents
+	// resource state
+
+	// Received Received
+	Received = "received"
+	// Pending Pending
+	Pending = "pending"
+	//Processing Processing
+	Processing = "processing"
+	//Deleting Deleting
+	Deleting = "deleting"
+	// Successful Success
+	Successful = "successful"
+	// Failed Failure
+	Failed = "failed"
+	// Retry Retry
+	Retry = "retry"
+	// Unknown Unknown
+	Unknown = "unknown"
+
+	// phase
+
+	// Start Start
+	Start = "start"
+	// InProgress InProgress
+	InProgress = "inprogress"
+	// Complete Complete
+	Complete = "complete"
+	// Error error
+	Error = "error"
 
 	// Audit Audit
-	Audit = "Audit"
+	Audit = "audit"
 	// Mutate Mutate
-	Mutate = "Mutate"
+	Mutate = "mutate"
 	// Validate Validate
-	Validate = "Validate"
-
-	// general state of requests
-
-	// Pending Pending
-	Pending = "Pending"
-	// Start Start
-	Start = "Start"
-	// InProgress InProgress
-	InProgress = "InProgress"
-	// Retry Retry
-	Retry = "Retry"
-	// End End
-	End = "End"
-
-	// disposition state
-
-	// Success Success
-	Success = "Success"
-	// Failure Failure
-	Failure = "Failure"
-	//Skip skip
-	Skip = "Skip"
+	Validate = "validate"
 )
