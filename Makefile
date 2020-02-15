@@ -1,5 +1,6 @@
-GO=GO111MODULE=on go
-GO_CROSS_CMPL=GOOS=linux GOARCH=amd64 ${GO}
+GO=${GO_CROSS_CMPL} GO111MODULE=on go
+# for mac GO_CROSS_CMPL=GOOS=darwin GOARCH=amd64
+# for linux GO_CROSS_CMPL=GOOS=linux GOARCH=amd64
 
 NAME=go-utils
 BINARY=bin/${NAME}
@@ -30,7 +31,7 @@ check: fmt
 	@echo "==> Code Check..."
 	golangci-lint run --fast --tests
 
-test: clean fmt
+test: clean
 	@echo "==> Testing..."
 	CGO_ENABLED=0 ${GO} test -v -covermode=atomic -count=1 ./... -coverprofile coverage.out
 	CGO_ENABLED=1 ${GO} test -race -covermode=atomic -count=1 ./... -json > report.json

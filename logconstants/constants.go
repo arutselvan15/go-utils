@@ -31,11 +31,15 @@ const (
 	Retry = "retry"
 	// Unknown Unknown
 	Unknown = "unknown"
+	//Ignored Ignored
+	Ignored = "ignored"
 
-	// phase
+	// step state
 
 	// Start Start
 	Start = "start"
+	// Skip Skip
+	Skip = "skip"
 	// InProgress InProgress
 	InProgress = "inprogress"
 	// Complete Complete
